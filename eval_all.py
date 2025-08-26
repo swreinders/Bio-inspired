@@ -21,12 +21,12 @@ def evaluate_model(model, n_intruders, agent_velocity, max_dheading, n_episodes=
         max_dheading=max_dheading
     )
     env.reset(seed=SEED)
-
+    # keeping track
     stats = {"green": {"count": 0, "success": 0, "durations": []},
              "orange": {"count": 0, "success": 0, "durations": []},
              "red": {"count": 0, "success": 0, "durations": []}}
 
-    for ep in range(n_episodes):
+    for ep in range(n_episodes): # main loop
         obs, _ = env.reset()
         done, min_dist, steps = False, np.inf, 0
         reached_goal = False
@@ -43,7 +43,7 @@ def evaluate_model(model, n_intruders, agent_velocity, max_dheading, n_episodes=
 
             if reward > 100:
                 reached_goal = True
-
+        #safety categories:
         flag = "red" if min_dist < 1.0 else "orange" if min_dist < 5.0 else "green"
         stats[flag]["count"] += 1
         if reached_goal:
@@ -89,14 +89,14 @@ def plot_trajectories(model, n_intruders, agent_velocity, max_dheading, n_episod
             own_pos = env.own_pos.copy()
             own_traj.append(own_pos)
             for i, intr in enumerate(env.intruders):
-                intr_trajs[i].append(intr["pos"].copy())  # ← Record intruder position here
+                intr_trajs[i].append(intr["pos"].copy())  # record intruder position here
                 dist = np.linalg.norm(own_pos - intr["pos"])
                 min_dist = min(min_dist, dist)
 
             action, _ = model.predict(obs, deterministic=True)
             obs, _, done, _, _ = env.step(action)
 
-        # Check safety
+        # safety categories
         flag = "red" if min_dist < 1.0 else "orange" if min_dist < 5.0 else "green"
         safety_flags.append(flag)
 
@@ -126,7 +126,7 @@ def plot_trajectories(model, n_intruders, agent_velocity, max_dheading, n_episod
         for traj in intr_trajs:
             if len(traj) > 1:
                 x_i, y_i = zip(*traj)
-                plt.plot(x_i, y_i, color='gray', linestyle='-', alpha=0.1) #was 0.1
+                plt.plot(x_i, y_i, color='gray', linestyle='-', alpha=0.1) #
 
     # Goal circle
     goal_circle = plt.Circle(env.goal, 
@@ -145,7 +145,7 @@ def plot_trajectories(model, n_intruders, agent_velocity, max_dheading, n_episod
     # maak tick labels groter voor latex
     ax.tick_params(axis='both', labelsize=16)
 
-    # custom legend 
+    # custom legend, werkt niet
     legend_elements = [
         Circle((0, 0), radius=0.5, color='green', label='Safe'),
         Circle((0, 0), radius=0.5, color='orange', label='Warning'),
@@ -161,13 +161,13 @@ def plot_trajectories(model, n_intruders, agent_velocity, max_dheading, n_episod
     plt.grid(True)
     plt.show()
 
-
+# functie to see what is going on during the trajectory
 def animate_failed_episode(model_path, n_intruders):
     model = DQN.load(model_path)
     env = CrossATCEnv(n_intruders=n_intruders)
 
-    # Try episodes until we find a failed one
-    for _ in range(100):  # Max 100 attempts
+    #try episodes until a failed one is found
+    for _ in range(100):  # max 100 attempts
         obs, _ = env.reset()
         own_traj = []
         intr_traj = {i: [] for i in range(len(env.intruders))}
@@ -183,7 +183,7 @@ def animate_failed_episode(model_path, n_intruders):
         if not env.reached_goal:
             break
     else:
-        print("✅ All episodes reached the goal, no animation created.")
+        print("All episodes reached the goal, no animation created.")
         return
 
     # Prep trajectory data
@@ -235,23 +235,24 @@ def animate_failed_episode(model_path, n_intruders):
 
 
 if __name__ == "__main__":
+    # voor verschillende intruders
 #     for n in [1,2,3,4]:
 #         model = DQN.load(f"saved_models/dqn_cross_atc_{n}intruders")
 #         # animate_failed_episode(f"saved_models/dqn_cross_atc_{n}intruders", n)
 #         evaluate_model(model, n_intruders=n)
 #         plot_trajectories(model, n_intruders=n)
 
-    velocities_and_headings = [
+    velocities_and_headings = [ # bepaal welke velocity ratio
         (1.5, 0.3),
-        # (1.4, 0.28),
-        # (1.3, 0.26),
+        (1.4, 0.28),
+        (1.3, 0.26),
         # (1.2, 0.24),
         # (1.1, 0.22)
     ]
 
     for vel, dh in velocities_and_headings:
         model_name = f"saved_models/dqn_cross_atc_1intruder_v{vel:.1f}_dh{dh:.2f}"
-        print(f"\n🔍 Evaluating model: {model_name}")
+        print(f"\nEvaluating model: {model_name}")
         model = DQN.load(model_name)
         evaluate_model(model, n_intruders=1, agent_velocity=vel, max_dheading=dh)
         plot_trajectories(model, n_intruders=1, agent_velocity=vel, max_dheading=dh)

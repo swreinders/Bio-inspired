@@ -7,7 +7,7 @@ from cross_atc import CrossATCEnv
 
 SEED = 42
 
-# Define the six configurations
+# define the six configurations for sensan
 tuning_configs = [
     {"gamma": 0.8, "lr": 0.001, "eps_start": 0.3, "eps_end": 0.1}, 
     {"gamma": 1.0, "lr": 0.001, "eps_start": 0.3, "eps_end": 0.1},
@@ -16,7 +16,7 @@ tuning_configs = [
     {"gamma": 0.9, "lr": 0.001, "eps_start": 0.4, "eps_end": 0.2},
     {"gamma": 0.9, "lr": 0.001, "eps_start": 0.2, "eps_end": 0.0},
 ]
-
+# keeping track of model performance during training
 def train_with_checkpoints(config, config_id, total_timesteps=300_000, save_every=1000):
     env = CrossATCEnv(
         n_intruders=1,
@@ -116,17 +116,17 @@ def analyze_config(config_name):
         df.to_csv(csv_path, index=False)
         print(f"Saved results to {csv_path}")
 
-    # Compute proportions
+    # safety proportions
     green_props = df["green_count"] / (df["green_count"] + df["orange_count"] + df["red_count"])
     orange_props = df["orange_count"] / (df["green_count"] + df["orange_count"] + df["red_count"])
     red_props = df["red_count"] / (df["green_count"] + df["orange_count"] + df["red_count"])
 
-    # Compute total success rate
+    # total success rate
     total_success_rate = (
         df["green_success"] + df["orange_success"] + df["red_success"]
     ) / (df["green_count"] + df["orange_count"] + df["red_count"] + 1e-6)
 
-    # Plot proportions and total success
+    #plot proportions and total success
     plt.figure(figsize=(14, 6))
     plt.plot(valid_steps, smooth(green_props), label='Safe', color='green', linewidth=3)
     plt.plot(valid_steps, smooth(orange_props), label='Warning', color='orange', linewidth=3)

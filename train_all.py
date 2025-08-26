@@ -4,19 +4,17 @@ import gymnasium as gym
 import os
 
 def train_model(n_intruders, agent_velocity, max_dheading, timesteps=250000): #op 250000 houden
-    # env_id = f"CrossATC-{n_intruders}intruders-v0"
-    # gym.envs.registration.register(
-    #     id=env_id,
-    #     entry_point="cross_atc:CrossATCEnv",
-    #     kwargs={"n_intruders": n_intruders}
-    # )
-    # env = gym.make(env_id)
-
-    env = CrossATCEnv(
-    n_intruders=n_intruders,
-    agent_velocity=agent_velocity,
-    max_dheading=max_dheading
+    env_id = f"CrossATC-{n_intruders}intruders-v0"
+    gym.envs.registration.register(
+        id=env_id,
+        entry_point="cross_atc:CrossATCEnv",
+        kwargs={
+            "n_intruders": n_intruders,
+            "agent_velocity": agent_velocity,
+            "max_dheading": max_dheading
+        }
     )
+    env = gym.make(env_id)
 
     model = DQN(
         "MlpPolicy",
@@ -44,11 +42,11 @@ if __name__ == "__main__":
 
     # alle configuraties voor speed ratios
     settings = [
-        (1.5, 0.30),
-        # (1.4, 0.28),
-        # (1.3, 0.26),
-        # (1.2, 0.24),
-        # (1.1, 0.22)
+        # (1.5, 0.30),
+        (1.4, 0.28),
+        (1.3, 0.26),
+        (1.2, 0.24),
+        (1.1, 0.22)
     ]
 
     for velocity, dheading in settings:

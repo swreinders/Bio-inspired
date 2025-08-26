@@ -6,7 +6,7 @@ from stable_baselines3 import DQN
 from cross_atc import CrossATCEnv
 
 SEED = 42
-
+# saving the model every 5000 timesteps to analyze performance during training
 def train_with_checkpoints(n_intruders, agent_velocity, max_dheading, total_timesteps, save_every):
     env = CrossATCEnv(
         n_intruders=n_intruders,
@@ -34,6 +34,7 @@ def train_with_checkpoints(n_intruders, agent_velocity, max_dheading, total_time
         model.save(checkpoint_path)
         print(f"Saved checkpoint at step {step + save_every}")
 
+# evaluate all saved models of one training
 def evaluate_model_return_stats(model, n_intruders, agent_velocity, max_dheading, n_episodes=100):
     env = CrossATCEnv(
         n_intruders=n_intruders,
@@ -69,9 +70,11 @@ def evaluate_model_return_stats(model, n_intruders, agent_velocity, max_dheading
 
     return stats
 
+# smoothen graphs
 def smooth(y, box_pts=5):
     return np.convolve(y, np.ones(box_pts)/box_pts, mode='same')
 
+# main loop to obtain clear results
 def analyze_mainmodel_progress():
     timesteps = list(range(0, 305000, 5000))
     green_props, orange_props, red_props = [], [], []
@@ -107,12 +110,12 @@ def analyze_mainmodel_progress():
 
     df = pd.DataFrame(results)
 
-    # Total success rate
+    # total success rate
     total_success = (
         df["green_success"] + df["orange_success"] + df["red_success"]
     ) / (df["green_count"] + df["orange_count"] + df["red_count"] + 1e-6)
 
-    # Plot combined graph
+    # pplot combined graph
     plt.figure(figsize=(14, 6))
     plt.plot(valid_steps, smooth(green_props), label='Safe', color='green', linewidth=3)
     plt.plot(valid_steps, smooth(orange_props), label='Warning', color='orange', linewidth=3)
